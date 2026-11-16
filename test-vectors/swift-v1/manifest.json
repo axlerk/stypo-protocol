@@ -62,7 +62,7 @@
       "mode" : "stealth",
       "name" : "swift-stealth-hello",
       "notes" : "Smallest stealth message: one bucket.",
-      "sha256" : "934330181e4599ae3e3b351c615b60ee68c33a2ac7ffb19bcb777cf5d4cb95b4",
+      "sha256" : "7a06e4908a05f5d3934881ad68878c417bbd3488a7f101c388d4947d0fdad327",
       "stream_bytes" : 114,
       "utf8_bytes" : 480,
       "utf16_units" : 252
@@ -77,10 +77,10 @@
       "mode" : "stealth",
       "name" : "swift-stealth-cyrillic",
       "notes" : "Cyrillic secret, two buckets.",
-      "sha256" : "aa95f31cc600c6a7c37caebc730a77ffbc7044dcb5e3c47e44f2e0cc0aa43b5d",
+      "sha256" : "7e6ba018b8266ba7235d05f541efacd195a86bfab574abd773d9ae92a87b04f4",
       "stream_bytes" : 178,
-      "utf8_bytes" : 755,
-      "utf16_units" : 373
+      "utf8_bytes" : 758,
+      "utf16_units" : 376
     },
     {
       "cover" : "❤️ hello, see you at eight.",
@@ -92,10 +92,10 @@
       "mode" : "stealth",
       "name" : "swift-stealth-emoji-cover",
       "notes" : "An emoji cover, stealth.",
-      "sha256" : "3b4aced4df331275fff466e0517f50486a430176fe5ee67289f0e8ba23a2604d",
+      "sha256" : "a0d75aa4e3aec76ce12d37562bca71046fdebb1bfbb385411b331bec73ab7763",
       "stream_bytes" : 114,
-      "utf8_bytes" : 481,
-      "utf16_units" : 249
+      "utf8_bytes" : 476,
+      "utf16_units" : 244
     },
     {
       "cover" : "See you at the station at eight.",
@@ -107,7 +107,7 @@
       "mode" : "stealth",
       "name" : "swift-stealth-two-buckets",
       "notes" : "100 bytes: two buckets.",
-      "sha256" : "c17c5f7888950a52cec2cbb9dacf8fe7204e463f14557476c9b09b513abe9165",
+      "sha256" : "31a7623eb97ae7839c13f6a0c5d3efe349e2a3d4c67bedfcee7f55628e508626",
       "stream_bytes" : 178,
       "utf8_bytes" : 734,
       "utf16_units" : 378
@@ -122,25 +122,25 @@
       "mode" : "stealth",
       "name" : "swift-stealth-one-bucket-exact",
       "notes" : "62 bytes fill one bucket exactly.",
-      "sha256" : "0ee650ba750da2e9a8d765b5f387953af85359b289c52a5ac65c13c76e19d4f3",
+      "sha256" : "163d31d83cad0ff7761384736ca829c45b932f3221061b86210058516384776b",
       "stream_bytes" : 114,
-      "utf8_bytes" : 480,
-      "utf16_units" : 252
+      "utf8_bytes" : 483,
+      "utf16_units" : 255
     },
     {
       "cover" : "See you at the station at eight.",
       "decoder_password" : "correct horse battery staple",
       "expect" : "ok",
       "expect_encrypted" : true,
-      "expect_plaintext_utf8" : "alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta ",
+      "expect_plaintext_utf8" : "alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo foxtrot golf hotel alpha bravo charlie delta echo f",
       "file" : "swift-stealth-max-cap.txt",
       "mode" : "stealth",
       "name" : "swift-stealth-max-cap",
-      "notes" : "The largest stealth message under the cap of 3600 units: a 1726-byte secret.",
-      "sha256" : "f57bf21746a1bd95199943eada3ec0ec67b602d5e2033f9e85e034e8a88424d2",
-      "stream_bytes" : 1778,
-      "utf8_bytes" : 7041,
-      "utf16_units" : 3485
+      "notes" : "The largest stealth message under the cap of 3600 units: a 1782-byte secret.",
+      "sha256" : "73116c2e1054788bcf6322c81dde8c13265aac665b456c3b440636ea16890ef8",
+      "stream_bytes" : 1842,
+      "utf8_bytes" : 7274,
+      "utf16_units" : 3590
     },
     {
       "cover" : "See you at the station at eight.",
@@ -163,10 +163,10 @@
       "mode" : "stealth",
       "name" : "swift-stealth-cut-499",
       "notes" : "A stealth message cut to 499 units: the marker passes, the frame is short.",
-      "sha256" : "55c886eed4ae65adfd8addffbb5b4282d67bdaca08e686b358cf40944fcda125",
-      "stream_bytes" : 255,
-      "utf8_bytes" : 1009,
-      "utf16_units" : 499
+      "sha256" : "aa6c6e8884bd441b064fbdea782fa03621fc26b3c19693b7769901d2a9f115f6",
+      "stream_bytes" : 257,
+      "utf8_bytes" : 1012,
+      "utf16_units" : 498
     },
     {
       "cover" : "See you at the station at eight.",
@@ -176,10 +176,10 @@
       "mode" : "stealth",
       "name" : "swift-stealth-wrong-password",
       "notes" : "The same answer as a message that is not Stypo.",
-      "sha256" : "81b51d3fde95b0d2908ea9b1bf88955ebb8f7e1b3eae943c0dac7a758b2daa7a",
+      "sha256" : "3d4cf2764e173fd1bc226abbaa709c7253912a6d473ee4758ecd26170e3c1dc0",
       "stream_bytes" : 114,
-      "utf8_bytes" : 481,
-      "utf16_units" : 253
+      "utf8_bytes" : 483,
+      "utf16_units" : 255
     },
     {
       "cover" : "See you at the station at eight.",
@@ -202,10 +202,36 @@
       "mode" : "stealth",
       "name" : "swift-stealth-tampered",
       "notes" : "One flipped ciphertext bit.",
-      "sha256" : "392995653a4f3e1306070cc6ec78ac26b9d551eb6d6aa17bd67b7e7eceff11a5",
+      "sha256" : "0b6f99d4196c41b2d0058504077d64cfd80a51df4b31ac12b8b4230d1488915e",
       "stream_bytes" : 114,
-      "utf8_bytes" : 482,
-      "utf16_units" : 254
+      "utf8_bytes" : 481,
+      "utf16_units" : 253
+    },
+    {
+      "cover" : "See you at the station at eight.",
+      "decoder_password" : null,
+      "expect" : "invalid",
+      "file" : "swift-open-two-runs.txt",
+      "mode" : "open",
+      "name" : "swift-open-two-runs",
+      "notes" : "Two open messages in one text: the longer decodes, the other is also frame-sized.",
+      "sha256" : "01d9435e31107cf3afc0adeced8bd977ca960d913b420d1176e577849a33b037",
+      "stream_bytes" : 25,
+      "utf8_bytes" : 175,
+      "utf16_units" : 101
+    },
+    {
+      "cover" : "See you at the station at eight.",
+      "decoder_password" : "correct horse battery staple",
+      "expect" : "invalid",
+      "file" : "swift-stealth-two-runs.txt",
+      "mode" : "stealth",
+      "name" : "swift-stealth-two-runs",
+      "notes" : "A stealth message and an open one in one text, read with the right password.",
+      "sha256" : "01f61383acdb14a94f60cdc27745316d972ce8f49c184a6c4cd1446bdd1e4190",
+      "stream_bytes" : 114,
+      "utf8_bytes" : 528,
+      "utf16_units" : 276
     }
   ]
 }

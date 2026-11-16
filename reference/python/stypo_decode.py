@@ -112,6 +112,23 @@ def extract_run(text: str) -> Optional[bytes]:
     return bytes(best) if best else None
 
 
+def count_frame_sized_runs(text: str) -> int:
+    """How many maximal runs of variation selectors have at least MIN_STREAM_BYTES scalars.
+
+    The encoder keeps every run of the cover at 3 scalars or fewer, so a message made by one encoder has exactly one run
+    of this size. Two mean two messages in one text (spec/text-layer.md section 2, step 5)."""
+    count = 0
+    run = 0
+    for ch in text:
+        if vs_to_byte(ord(ch)) is None:
+            run = 0
+        else:
+            run += 1
+            if run == MIN_STREAM_BYTES:
+                count += 1
+    return count
+
+
 # ---------------------------------------------------------------------------
 # Open mode (spec/open-v1.md).
 # ---------------------------------------------------------------------------
@@ -194,12 +211,19 @@ def decode(text: str, password: Optional[str] = None) -> Result:
         return Result(Status.NO_PAYLOAD, detail="no variation-selector run")
     if len(stream) > MAX_STREAM_BYTES:
         return Result(Status.NO_PAYLOAD, detail="run longer than any message can carry")
+    result = None
     if password:
-        result = decode_stealth(stream, password)
-        if result.status is not Status.NO_PAYLOAD:
-            return result            # the marker passed: this is a stealth message
+        stealth = decode_stealth(stream, password)
+        if stealth.status is not Status.NO_PAYLOAD:
+            result = stealth         # the marker passed: this is a stealth message
         # Marker mismatch: wrong password or not stealth. Try open, as the siblings do.
-    return decode_open(stream)
+    if result is None:
+        result = decode_open(stream)
+    # Two messages in one text: the longest run decoded, but it may not be the one the sender meant. Only a reader who
+    # could read the message is told (a wrong password still gets no-payload), and the answer is the existing `invalid`.
+    if result.status is Status.OK and count_frame_sized_runs(text) > 1:
+        return Result(Status.INVALID, detail="more than one run of frame size in the message")
+    return result
 
 
 def decode_bytes(message: bytes, password: Optional[str] = None) -> Result:

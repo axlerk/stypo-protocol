@@ -12,7 +12,7 @@ either ([`text-layer.md`](text-layer.md)).
 
 > **Status.** The magic `STYP` and the 2-byte length are proposals of the design
 > session; the owner has not signed them off. The body limit (2 000 bytes) is a format
-> ceiling under the verified collapse boundary, approved by the owner on 2026-11-08 (relayed by the design session) (see
+> ceiling under the verified collapse boundary, approved by the owner on 2026-11-08 (see
 > [`text-layer.md`](text-layer.md), section 4).
 
 ## 1. Framing

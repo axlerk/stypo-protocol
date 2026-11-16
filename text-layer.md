@@ -13,8 +13,8 @@ this layer hides that a message carries something; stealth mode hides what.
 > units) is **verified** on iOS 26.7.2 and 27.2 (iPhone 12 mini and 15 Pro, real
 > iMessage) and on the iOS 27.0 simulator, 2026-11-08. The cap (3 600 units) and the
 > body limit (2 000 bytes) are **decisions**, approved by the owner on 2026-11-08
-> (relayed by the design session), not measurements; the 4 000-byte stream limit is derived from the boundary. The
-> record is `docs/experiment-read-path.md`. Statements are labelled **verified**
+>, not measurements; the 4 000-byte stream limit is derived from the boundary. The
+> record is the project's measurement record (read path; not published). Statements are labelled **verified**
 > (with the source), **inferred** or **unmeasured**.
 
 > **Notation.** A message is a Unicode string; "scalar" is a Unicode scalar
@@ -40,7 +40,7 @@ Cost of a hidden byte in the message: **1 unit** if the byte is below `0x10`,
 **2 units** otherwise. Worst case 2 per byte; for uniformly random bytes
 (stealth mode) the mean is 1.9375.
 
-Why this alphabet (**verified**, PoC `docs/experiment-text-carrier.md`, simulator
+Why this alphabet (**verified**, the proof-of-concept record (not published), simulator
 iOS 27.0 and phones iOS 26.7.2 / 27.2, 17 messages): variation selectors arrive
 byte for byte through iMessage; they show no layout effect in a bubble up to
 1 024 of them (zero-width joiners add 11 % to the bubble's height, tag
@@ -61,6 +61,18 @@ the bubble, decoded; bytes that are not valid UTF-8 are not a Stypo message).
    one-byte body) there is no payload. If it is longer than **4 000 bytes** there
    is no payload (derived from the verified boundary of section 4: no message at or
    under it has more than 4 000 alphabet scalars).
+
+5. **Two messages in one text.** After a result of `ok` (an open message, or a stealth
+   message read with the right password), if the text holds **another run of at least 7
+   alphabet scalars** besides the payload run, the result is `invalid` instead: the text
+   carries more than one message, and the longest or first one may not be the one the sender
+   meant. The encoder keeps every run of the cover at 3 scalars or fewer (section 3), so a
+   message made by one encoder has exactly one run of that size. The check follows the
+   result and never precedes it: a stealth message read with a wrong password, or without a
+   password, still gives `no-payload`, so the rule is no oracle for a reader who cannot read
+   the message. (*Decision, 2026-11-11; that
+   Messages' field can hold two added messages was measured on 2026-11-12 in the iOS 27.0
+   simulator, one run: the project's measurement record (read path; not published), the double-insert measurement; not measured on a device.*)
 
 Nothing else in the message is read. The cover text is not parsed, normalised or
 compared. A decoder MUST read the stream from the scalars of the UTF-8 bytes it
@@ -110,7 +122,7 @@ implementation makes the same messages.
 ### Collapse boundary
 
 Messages draws a long text bubble collapsed (the first 499 units, an ellipsis and a
-chevron). **Verified** (simulator iOS 27.0, 20 messages, `docs/experiment-read-path.md`):
+chevron). **Verified** (simulator iOS 27.0, 20 messages, the project's measurement record (read path; not published)):
 
 - a bubble is **whole up to and including 4 000 UTF-16 units and collapsed from
   4 001** (a message of 4 000 units whole, one of 4 001 collapsed);
@@ -159,7 +171,7 @@ Every decoder, in every language, returns one of five results for a message:
 | `no-payload` | no payload run, a run outside 7..4 000 bytes, no open magic, or a stealth marker that does not match. **A wrong password and a message that is not Stypo give this same result, on purpose** |
 | `truncated` | the frame proves the run is shorter than the frame it announces (details in each mode) |
 | `unsupported` | a version byte this decoder does not know (open: after the magic; stealth: after the marker has passed) |
-| `invalid` | a frame of the right kind with impossible content (a zero length, an authentication failure, bytes after the frame) |
+| `invalid` | a frame of the right kind with impossible content (a zero length, an authentication failure, bytes after the frame), or a text that carries two runs of frame size (section 2, step 5) |
 
 Order, given a stream: if a password is at hand, try stealth first; a stealth
 marker that matches settles the result (the password is right, so `truncated`,

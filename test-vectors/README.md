@@ -2,7 +2,7 @@
 
 Messages (UTF-8 files), the password to try, and the expected result, emitted by
 `../reference/python/stypo_vectors.py` and read by `stypo_decode.py`. The Swift engine decodes them
-too (`StypoTests/CrossImplVectorsTests`), and `swift-v1/` holds 14 vectors the Swift encoder wrote
+too (`StypoTests/CrossImplVectorsTests`), and `swift-v1/` holds 16 vectors the Swift encoder wrote
 (`SwiftVectorEmitterTests`, with `EMIT_VECTORS=1`; random salts and nonces, committed once) for the Python decoder:
 `python verify_test_vectors.py ../../test-vectors/swift-v1`.
 
@@ -22,7 +22,8 @@ elsewhere; a wrong password, a message that is not Stypo, and a stealth message 
 password (the first two must give the same result); crafted frames (zero length, bad
 version, bad magic, too long, trailing bytes, unsupported stealth version, tampered
 ciphertext, bad inner length); one encoder-rule violation (`negative-adjacent-fe0f`); and
-bytes that are not UTF-8.
+bytes that are not UTF-8; and two runs of frame size in one text (`open-two-runs-*`,
+`stealth-two-runs-right-password`: `invalid`; `stealth-two-runs-wrong-password`: `no-payload`).
 
 ## Verify
 

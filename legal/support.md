@@ -12,7 +12,7 @@ encrypted, and you both need the password.
 
 1. Install Stypo from the App Store.
 2. Open Messages, tap the apps drawer, and choose Stypo.
-3. Tap **Hide a text**. Write the message everyone will see, then type the
+3. In the Stypo panel, tap "Write the text everyone will see…". Write the text, then type the
    secret.
 4. (Optional, recommended) Turn on encryption in the Stypo app and set a
    password you and your partner already share.

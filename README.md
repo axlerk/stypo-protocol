@@ -7,8 +7,7 @@
 > issues against the spec here is fine; canonical edits happen upstream
 > and propagate on every push to Stypo's `main`.
 
-**Status: drafted 2026-11-08 (plan step 2). Not published; no copy, site text or
-claim refers to it yet.** This directory is the normative specification of the
+**Status: drafted 2026-11-08, published at `github.com/axlerk/stypo-protocol`, which mirrors this directory.** This directory is the normative specification of the
 formats Stypo hides inside an ordinary text message. It exists so that anyone can:
 
 1. Read the spec and see what is on the wire.
@@ -35,7 +34,7 @@ not the existence of a message ([`text-layer.md`](text-layer.md); the threat mod
 ## What is measured and what is a proposal
 
 The collapse boundary of 4 000 UTF-16 units is **verified** on iOS 26.7.2, 27.0 (simulator)
-and 27.2 (`../docs/experiment-read-path.md`). The cap of 3 600 units and the body limit of
+and 27.2 (the project's measurement record (read path; not published)). The cap of 3 600 units and the body limit of
 2 000 bytes are decisions the owner approved on 2026-11-08 (the 4 000-byte stream limit follows
 from the boundary). The magic `STYP`, the 64-byte bucket and the domain string
 `stypo-v1-header` are proposals the owner has not signed off. Nothing here is frozen until
@@ -52,7 +51,7 @@ cap) are recommendations in `text-layer.md`.
 
 How a message reaches the recipient (the composer's `MSConversation.insertText`,
 the bubble, a drag or a paste) is outside the wire format. What was measured about
-it is in `text-layer.md`, section 6, and `../docs/experiment-read-path.md`.
+it is in `text-layer.md`, section 6, and the project's measurement record (read path; not published).
 
 ## License
 

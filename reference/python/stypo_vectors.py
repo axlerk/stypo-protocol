@@ -251,6 +251,28 @@ def vectors():
             "A valid seal around a block whose length field exceeds the block.", decoder_password=PASSWORD,
             mode="stealth", password=PASSWORD)
 
+    # -- two runs of frame size in one message (spec/text-layer.md section 2, step 5)
+    def two_runs(name, mode, stream_a, stream_b, note, password=None, decoder_password=None, atb=14):
+        # The second run goes later in the cover; the first at the usual place.
+        text = compose(compose(COVER, stream_b, atb), stream_a, COVER_AT)
+        add(name, mode, text, cover=COVER, at=COVER_AT, expect="invalid", note=note, password=password,
+            decoder_password=decoder_password)
+
+    two_runs("open-two-runs-longer-first", "open", encode_open(b"the second thought"), encode_open(b"first"),
+             "Two open messages in one text; the longer decodes, the shorter one is also frame-sized: invalid.")
+    two_runs("open-two-runs-shorter-first", "open", encode_open(b"first"), encode_open(b"the second thought"),
+             "As above with the longer run second: the same result, whatever the order.", atb=20)
+    two_runs("open-two-runs-equal-length", "open", encode_open(b"alpha"), encode_open(b"omega"),
+             "Two runs of the same length: the first wins the tie, the other is frame-sized: invalid.")
+    two_runs("stealth-two-runs-right-password", "stealth", encode_stealth(b"hello world", PASSWORD, "two-a"),
+             encode_open(b"first"), "A stealth message and an open one in one text, read with the right password: invalid.",
+             password=PASSWORD, decoder_password=PASSWORD)
+    add("stealth-two-runs-wrong-password", "stealth",
+        compose(compose(COVER, encode_open(b"first"), 14), encode_stealth(b"hello world", PASSWORD, "two-a"), COVER_AT),
+        cover=COVER, at=COVER_AT, password=PASSWORD, decoder_password=OTHER_PASSWORD, expect="no-payload",
+        note="The same text read with another password: the stealth marker does not match and the answer is the one of a "
+             "message that is not Stypo; only a reader who can read the message is told that there are two.")
+
     # -- negative: an encoder-rule violation
     add("negative-adjacent-fe0f", "negative", compose(COVER_EMOJI, encode_open(b"hello world"), 2), cover=COVER_EMOJI, at=2,
         expect="no-payload",

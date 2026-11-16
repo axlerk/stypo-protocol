@@ -18,8 +18,8 @@ run yourself, see [`spec/`](spec/README.md).
 Labels used throughout: **verified** (read in the code, or measured, with the
 source named), **inferred** (reasoning from the design, not measured),
 **unmeasured** (nobody has checked, and no claim is made). Measurements are in
-`docs/experiment-read-path.md` and, for the proof of concept, in
-`poc/docs/experiment-text-carrier.md`.
+the project's measurement record (read path; not published) and, for the proof of concept, in
+the proof-of-concept record (not published).
 
 ## TL;DR
 
@@ -92,7 +92,7 @@ Facts the design rests on, each with its source:
 - **verified** A text bubble is drawn whole up to 4 000 UTF-16 units and
   collapsed from 4 001, on iOS 26.7.2, 27.0 (simulator) and 27.2. A collapsed
   bubble drags as its first 499 units, so the cap of the app is 3 600 units
-  (`docs/experiment-read-path.md`).
+  (the project's measurement record (read path; not published)).
 - **verified** A drag of a whole incoming bubble delivered exact bytes 12 of 12
   on the two phones. The programmatic paste after Copy gave exact bytes 7 of 8
   behind the system prompt and was denied silently once on iOS 27.2; the iOS 27.0
@@ -108,7 +108,7 @@ Facts the design rests on, each with its source:
   (iOS 26.7.2), with Show Previews at When Unlocked or Always, showed the whole 400-byte test message as
   plain text (the 92 hidden characters add no gap, width or mark). For the 4 000-unit message the banner
   showed only the cover text up to the hidden run (`KD2 See`) and cut the rest without a mark. n = 1
-  per cell (`docs/experiment-read-path.md`, "Phone round 2").
+  per cell (the project's measurement record (read path; not published), "Phone round 2").
 - **verified** Messages shows no "From <app>" label on a text bubble that an extension inserted with
   `insertText`: not on the sent bubble (iPhone 12 mini, iOS 26.7.2) and not on the received one (the 12 mini,
   and the iPhone 15 Pro on iOS 27.2), in the accessibility tree, the screenshot or the long-press menu.
@@ -124,8 +124,8 @@ Facts the design rests on, each with its source:
     other apps and devices see;
   - the SMS fallback and any non-iMessage recipient;
   - copying into other messengers and apps (Notes on one phone is the only measurement);
-  - the lock-screen preview (not measured: skipped by the owner's decision of 2026-11-08, on the design session's recommendation; see
-    `docs/experiment-read-path.md`, "Phone round 2"), and the banner on other iOS versions;
+  - the lock-screen preview (not measured: skipped by the owner's decision of 2026-11-08; see
+    the project's measurement record (read path; not published), "Phone round 2"), and the banner on other iOS versions;
   - what VoiceOver speaks for a received bubble (the runner's taps did not move the VoiceOver
     cursor onto a transcript cell; only the accessibility label, which holds every selector, is known),
     how long it takes, and the speech of the full composer line (the caption panel cuts it);
@@ -172,6 +172,14 @@ This is the main limit and the reason for the sentence at the top.
   text contains runs of one or two (an emoji with its presentation selector, a
   keycap, an ideographic variation sequence), so a long run stands out; nobody
   measured a corpus for this, and no figure is claimed.
+- Two messages in one text (a person adds twice without clearing Messages' field,
+  which `insertText` appends to): a reader who can read the longest run is told
+  "damaged" (`invalid`), not given that one, because it may be the withdrawn one;
+  a wrong password still gets "nothing found" (`spec/text-layer.md` section 2, step
+  5; decided 2026-11-11). The composer cannot see Messages' field, so it cannot
+  prevent this; the sender is not told. **Measured** that the field holds both
+  (two adds, one Send, one bubble with 68 selectors = the two frames of 19 and 49 bytes; iOS 27.0 simulator, one run, 2026-11-12,
+  the project's measurement record (read path; not published), the double-insert measurement; **not measured on a phone**). The engine behaviour is covered by vectors and tests.
 - The smallest stealth message is a run of 114 characters; a typical one is
   hundreds. **verified** (arithmetic of the format, `spec/stealth-v1.md` section 7).
 - The position is fixed: the run sits right after the first word of the cover
@@ -269,7 +277,7 @@ mark: on the receiver's screen that is a **visible sign of a long secret** to
 anyone who sees the banner, and a short secret has no such sign. The cutoff between
 those two sizes was not measured. **Unmeasured:** what VoiceOver says for a
 received bubble and whether it reads each selector out. What a lock-screen
-preview shows was not measured (skipped by the owner's decision of 2026-11-08, on the design session's recommendation) and is unknown.
+preview shows was not measured (skipped by the owner's decision of 2026-11-08) and is unknown.
 
 ### Metadata about the conversation
 - iMessage routing metadata (who sent what to whom, when).
@@ -315,9 +323,28 @@ live in one Keychain item (`*ThisDeviceOnly`), with which chat each is for. A ch
 is identified by the set of remote participant UUIDs Messages gives the
 extension; Stiger measured them to be replaced when the app is installed again
 over itself, so a chat binding is a hint and not a key (Stiger
-`docs/experiment-participant-ids.md`; **not re-measured in Stypo**). The reveal
-makes one automatic attempt with the chat's password (or none, which reads an
-open message) and offers the other saved passwords in a menu, one attempt per pick.
+the participant-identifier record (not published); **not re-measured in Stypo**).
+
+The automatic read (`TextRevealViewController`, `ChatPasswordStore.revealCandidates`) tries up to eight saved passwords
+(`ChatPasswordStore.revealCandidateLimit`), the chat's own first and the others by recency, for a Pro user; a free user gets one
+password-less attempt, which reads an open message. The menu of saved passwords is still there for a pick, one attempt per
+pick, and a pick follows the same rule as the automatic read. An earlier version of this document described one automatic
+attempt (changed 2026-11-11), and then a read that bound the chat to whichever saved password opened the message (changed
+2026-11-12); neither is true any more. Two consequences follow, both **verified by reading the code and by the tests of the
+reveal screen, not measured as an attack**:
+
+1. **Cross-chat tries.** A message received in one chat is tried against the passwords saved for other chats. The tries
+   happen on the device and show nothing to the sender.
+2. **A saved password that opens a message.** A saved password that opens a message does not become the chat's password by
+   being read. When the chat has no password, the reveal offers a switch, off by default, and binds the chat only when the
+   person turns it on. When the chat has a password of its own, the reveal changes nothing and says that another saved
+   password opened the message. A chat's password is replaced only by the person: in the composer, or by typing a password
+   on the reveal with "Save for this chat" on. What remains: whoever knows one of the reader's saved passwords can still
+   have a message under it opened in any chat (the cross-chat tries), and in a chat with no password can still get that
+   password bound if the reader turns the switch on.
+
+Cost: up to eight PBKDF2 runs, 0.75 s on a Mac host (Apple M1 Pro, measured 2026-11-12); **not measured on a phone**. The
+screen shows a system activity indicator while it runs.
 
 ## 5. Trust assumptions
 
@@ -354,7 +381,7 @@ Stypo on a vector, the spec is wrong — please report it.
 
 1. **Detectability.** §3. There is no layer to fix it with; spreading the run
    across the text would, by inference, change nothing for a scanner that looks
-   for the code points (`docs/design.md` section 3).
+   for the code points (the project's design notes, not published).
 2. **The run's position is fixed** (end of the first word). A scanner built for
    Stypo can look only there.
 3. **Open mode exists in the same UI as stealth mode, and carries a fingerprint.**
@@ -379,7 +406,8 @@ Stypo on a vector, the spec is wrong — please report it.
      of Settings, which falls back to the passcode.
    - Stypo cannot show which chat a password belongs to (Messages gives no names),
      and the binding may be lost on reinstall (§4 "Saved passwords"); the reveal
-     makes one attempt with the chat's password and leaves the others to a menu.
+     tries up to eight saved passwords, one PBKDF2 run each, and binds no chat by reading (§4, "Saved passwords",
+     for the two consequences).
 6. **Length to a 64-byte bucket**, and exact length in open mode (§3).
 7. **PBKDF2, not Argon2id.** PBKDF2-SHA256 at 600 000 iterations is the same choice as
    Stiger's and Stecho's; it is not memory-hard. **Inferred:** a determined attacker

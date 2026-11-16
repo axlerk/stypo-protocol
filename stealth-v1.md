@@ -11,7 +11,7 @@ For what this protects and what it does not, see the threat model
 > **Status.** The shape follows Stiger's `stealth-v3` and Stecho's `stealth-v2`
 > (same crypto, no permutation layer). The 64-byte bucket and the `stypo-v1-header`
 > domain string are proposals; the owner has not signed them off. The body limit
-> (2 000 bytes) is approved by the owner on 2026-11-08 (relayed by the design session).
+> (2 000 bytes) is approved by the owner on 2026-11-08.
 
 > **Notation.** All multi-byte integers are big-endian. `||` is concatenation.
 > `[a..b]` is a half-open byte slice.

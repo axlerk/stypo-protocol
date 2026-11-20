@@ -1,434 +1,422 @@
 # Stypo — Threat Model
 
-This document states what Stypo defends against, what it does **not** defend
-against, and the assumptions behind those guarantees. Read it before trusting
-the app with anything that matters.
+**Status:** TestFlight beta, not yet on the App Store. The text describes
+the current code, in which Stypo is free and every feature is on for
+everyone, and says, in the place where it matters, where the latest
+TestFlight build (2026-11-11) is behind it. Formats: `open-v1` and
+`stealth-v1`; some of their constants may change before 1.0 (the
+specification says which). Last checked against the code on 2026-11-20.
 
-**Stypo is the most detectable member of its family.** The hidden text rides
-in a run of invisible variation-selector characters inside an ordinary text
-message. A one-line scan for those characters finds the run. Nothing in the
-design hides that a message carries something; the password hides what.
+This document says what Stypo protects, what it does not, and how we know.
+Read it before you trust the app with anything that matters.
 
-If you find a gap between this document and the implementation, the
-implementation is wrong — please open an issue.
+If the app does less than this document says, the app is wrong. If the
+document says more than the code or a measurement backs, the document is
+wrong. If a decoder written from the specification disagrees with the app,
+one of the two has a bug. In each case, please tell us (§6).
 
-For the byte-for-byte wire format and an independent reference decoder you can
-run yourself, see [`spec/`](spec/README.md).
-
-Labels used throughout: **verified** (read in the code, or measured, with the
-source named), **inferred** (reasoning from the design, not measured),
-**unmeasured** (nobody has checked, and no claim is made). Measurements are in
-the project's measurement record (read path; not published) and, for the proof of concept, in
-the proof-of-concept record (not published).
+The format, a reference decoder and test vectors are public:
+<https://github.com/axlerk/stypo-protocol>. Every figure this document
+relies on is in the text, with its sample size and date. The record named
+beside it is where the run is written down; the records live in the app's
+source repository, which is private. A dagger (†) marks what we have not
+checked ourselves; §5 lists it all.
 
 ## TL;DR
 
 **English.**
 
-- **Protects, with a password:** the content of a short text (AES-256-GCM, key
-  derived from the password by PBKDF2-SHA256, 600 000 iterations), and the fact
-  that a search of the chat for words finds only the cover text the sender wrote
-  (the hidden characters are not letters; inferred, the search itself was not
-  tried).
-- **Does not protect:** the **existence** of a hidden message. A run of
-  variation selectors is an anomaly in any text, and a one-line scan finds it
-  (ordinary text is expected to carry one or two of them next to an emoji, not a
-  hundred: inferred, not measured). There is nothing here that resembles Stiger's or Stecho's attempt to match the
-  statistics of a cover. A compromised or unlocked phone, a Keychain extracted
-  by forensic tooling, and editing the message after it was added also defeat or
-  destroy the protection.
-- **Open mode** (no password) is readable by anyone with the spec and thirty
-  lines of code, and its `STYP` magic names the app that wrote it. It is not a
-  privacy feature, and it exposes the encrypted messages in the same chat by
-  association.
-- **Length leaks to a 64-byte bucket:** anyone who finds the run can count it.
-- **No forward secrecy:** a leaked password decrypts every earlier message sent
-  under it.
-- **Copying into other apps, SMS and non-Apple recipients are unmeasured**
-  (§1 lists what is) and are not claimed.
+- A short text is encrypted and hidden as a run of invisible characters
+  inside an ordinary text message that you write, sent through iMessage.
+- With a password, nobody reads the message without it (AES-256-GCM, key
+  from the password by PBKDF2-SHA256, 600 000 iterations). The password is
+  the whole defence, so make it a long one.
+- Stypo is the easiest member of its family to detect. A one-line scan for
+  those characters finds the run, and its length gives away the size of the
+  message to within 64 bytes. The password hides what the message says, not
+  that it is there.
+- An unlocked phone in someone else's hands gives everything away: saved
+  passwords open the messages, and spyware sees what you see. A password
+  that leaks opens every earlier message sent under it.
+- Without a password (open mode) anyone can read the message, with Stypo or
+  without it. That is for jokes and love notes, not for privacy.
 
 **По-русски.**
 
-- **Защищает, с паролем:** содержимое короткого текста (AES-256-GCM, ключ
-  выводится из пароля через PBKDF2-SHA256, 600 000 итераций) и то, что поиск по
-  чату находит только видимый текст, который написал отправитель (скрытые
-  символы не буквы; это вывод, сам поиск не пробовали).
-- **Не защищает:** **сам факт** скрытого сообщения. Цепочка вариационных
-  селекторов в любом тексте выглядит аномалией, и её находит проверка в одну
-  строку (в обычном тексте ожидается один-два таких символа рядом с эмодзи, а
-  не сотня: это вывод, не измерение). Здесь нет ничего похожего на попытку
-  Stiger и Stecho повторить статистику видимого текста. Взломанный или разблокированный
-  телефон, связка ключей Keychain, снятая криминалистическим инструментом, и
-  правка сообщения после добавления тоже обходят защиту или уничтожают её.
-- **Открытый режим** (без пароля) читает любой, у кого есть спецификация и
-  тридцать строк кода, а его магическая метка `STYP` называет приложение,
-  которое его написало. Это не приватность, и он по ассоциации выдаёт
-  зашифрованные сообщения в том же чате.
-- **Длина видна с точностью до корзины в 64 байта:** любой, кто нашёл цепочку,
-  может её сосчитать.
-- **Прямой секретности нет:** утёкший пароль расшифровывает все прежние
-  сообщения, отправленные с ним.
-- **Копирование в другие приложения, SMS и получатели не на устройствах Apple
-  не измерены** (перечень в §1) и не заявляются.
+- Короткий текст шифруется и прячется цепочкой невидимых символов внутри
+  обычного текстового сообщения, которое ты пишешь сам; оно уходит через
+  iMessage.
+- С паролем сообщение без него не прочитать (AES-256-GCM; ключ получается из
+  пароля через PBKDF2-SHA256, 600 000 итераций). Вся защита — в пароле, так
+  что выбирай длинный.
+- Stypo обнаружить проще, чем любое другое приложение семейства. Цепочку
+  невидимых символов находит проверка в одну строку, а по её длине виден
+  размер сообщения с точностью до 64 байт. Пароль скрывает, что написано, но
+  не то, что сообщение есть.
+- Разблокированный телефон в чужих руках ничего не скрывает: сохранённые
+  пароли открывают сообщения, а шпионская программа видит то же, что и ты.
+  Если пароль утёк, им откроются и все сообщения, отправленные с ним раньше.
+- Без пароля (открытый режим) сообщение прочтёт кто угодно, со Stypo или без
+  него. Такой режим — для шуток и любовных записок; для защиты переписки он
+  не годится.
 
-## 1. Scope
+## 1. What Stypo does
 
-Stypo hides a short text (at most 2 000 bytes, and at most 3 600 UTF-16 units
-for the whole message, cover included) in an ordinary iMessage **text
-message**. The sender writes a cover text; Stypo puts the secret into a run of
-variation selectors (U+FE00..FE0F and U+E0100..E01EF, one byte per character)
-at the end of the cover's first word, and adds the finished text to Messages'
-own field through `MSConversation.insertText`. The recipient drags the bubble
-into the Stypo extension, or copies it and pastes it there, and the extension
-reads the run back.
+Stypo hides a short text (about 1 700 bytes at most) in an ordinary iMessage
+text message. You write a visible text. Stypo writes the hidden message as a
+run of invisible characters (variation selectors, one byte per character)
+after the first word of your text, and puts the finished text into Messages'
+own field for you to send. The recipient drags the bubble into Stypo, or
+copies and pastes it there, and reads the message.
 
-Facts the design rests on, each with its source:
+**How much fits.** The whole text, visible part included, may be 3 600
+UTF-16 units: Messages collapses a bubble past 4 000 (measured, §3.4), a
+collapsed bubble loses the run, and the cap sits 10 % under that. The app
+counts two units for every hidden byte, so by that rule 1 726 bytes of
+message fit in stealth mode beside a visible text of up to 44 units, and 64
+fewer for every further 128 units of visible text. That is about 1 700 Latin
+letters or 850 Cyrillic ones. The format's own limit of 2 000 bytes is never
+reached.
 
-- **verified** The characters of the alphabet arrive byte for byte through
-  iMessage: no normalisation, 4 049 bytes of selectors exact on the phones,
-  16 145 bytes exact in the simulator (proof of concept, iPhone 12 mini on
-  iOS 26.7.2 to iPhone 15 Pro on iOS 27.2, real iMessage, 17 messages, 12 read
-  back exactly; iOS 27.0 simulator).
-- **verified** A text bubble is drawn whole up to 4 000 UTF-16 units and
-  collapsed from 4 001, on iOS 26.7.2, 27.0 (simulator) and 27.2. A collapsed
-  bubble drags as its first 499 units, so the cap of the app is 3 600 units
-  (the project's measurement record (read path; not published)).
-- **verified** A drag of a whole incoming bubble delivered exact bytes 12 of 12
-  on the two phones. The programmatic paste after Copy gave exact bytes 7 of 8
-  behind the system prompt and was denied silently once on iOS 27.2; the iOS 27.0
-  simulator returned nothing 6 of 6 and showed no prompt.
-- **verified** One backspace in Messages' field after `insertText` removed the
-  first word's last letter together with the whole hidden run (iOS 27.0
-  simulator, press 30 of 36). Editing the text after it was added is not
-  supported, and the composer says so.
-- **verified** Pasting a copied bubble into Notes on the iPhone 12 mini (iOS 26.7.2) kept
-  the 400-byte test message exactly (216 UTF-16 units, 92 selectors, SHA-256 equal). One
-  message, one phone: the 15 Pro's three runs were inconclusive.
-- **verified** A notification banner on an unlocked iPhone 15 Pro (iOS 27.2) and iPhone 12 mini
-  (iOS 26.7.2), with Show Previews at When Unlocked or Always, showed the whole 400-byte test message as
-  plain text (the 92 hidden characters add no gap, width or mark). For the 4 000-unit message the banner
-  showed only the cover text up to the hidden run (`KD2 See`) and cut the rest without a mark. n = 1
-  per cell (the project's measurement record (read path; not published), "Phone round 2").
-- **verified** Messages shows no "From <app>" label on a text bubble that an extension inserted with
-  `insertText`: not on the sent bubble (iPhone 12 mini, iOS 26.7.2) and not on the received one (the 12 mini,
-  and the iPhone 15 Pro on iOS 27.2), in the accessibility tree, the screenshot or the long-press menu.
-  The same thread on the 12 mini shows "From Stecho" under a received video carrier of another app's
-  extension, so the label exists for attachments. Stypo's text carries none.
-- **verified** With VoiceOver on, focusing the composer that holds the 400-byte test message made the
-  caption panel read "Message, Text field, Is editing, PV1 See you at the station a…" (the panel's width cuts
-  the line). The panel shows the text that is spoken; an invisible character draws nothing in it, so
-  whether the selectors were spoken is not shown. One phone (12 mini, iOS 26.7.2), n = 1.
-- **Unmeasured, in one list** (nobody has checked, and no claim is made):
-  - what travels with the message when it goes through the pasteboard (the recipient's Copy
-    then paste; Stypo offers no "Copy instead of send"): what is stored, for how long, and what
-    other apps and devices see;
-  - the SMS fallback and any non-iMessage recipient;
-  - copying into other messengers and apps (Notes on one phone is the only measurement);
-  - the lock-screen preview (not measured: skipped by the owner's decision of 2026-11-08; see
-    the project's measurement record (read path; not published), "Phone round 2"), and the banner on other iOS versions;
-  - what VoiceOver speaks for a received bubble (the runner's taps did not move the VoiceOver
-    cursor onto a transcript cell; only the accessibility label, which holds every selector, is known),
-    how long it takes, and the speech of the full composer line (the caption panel cuts it);
-  - whether the banner's cut for long runs sets in below 3 964 selectors (two points: 92 shown whole,
-    3 964 cut);
-  - the Pro states and the biometric lock in the live UI (the screens were photographed
-    in the simulator in the free state, no passcode);
-  - a collapsed bubble copied on a phone; iOS versions other than 26.7.2, 27.0 (simulator)
-    and 27.2; the Mac and Watch clients.
+Do not edit the text after Stypo has added it: one backspace can take the
+whole run with it (§3.4).
 
-## 2. Adversaries we defend against
+Two modes share the layer (`text-layer.md`):
 
-### A. Someone reading the chat, or searching it for words (with a password)
-With a password the hidden bytes are the output of AES-256-GCM and a random
-header: indistinguishable from random bytes without the key (`spec/stealth-v1.md`),
-and mapped to invisible characters, not to letters. A person scrolling the chat
-sees the cover text and nothing else; a keyword search of the chat can match
-the cover and has no letters of the secret to match (**inferred**, the system
-search was not tried). This is the whole of what the design offers against a
-reader who is not looking for hidden characters. It is not protection against one
-who is (§3, "Detection").
+- **Open mode** (`open-v1.md`): no password. The run starts with the `STYP`
+  marker, a version and the exact length.
+- **Stealth mode** (`stealth-v1.md`): a password both people know. The run
+  is a random salt, a keyed marker and the encrypted text, padded to a
+  multiple of 64 bytes. No marker, no length in clear.
 
-### B. Someone with a copy of the app or the spec
-The format is public (`spec/`), and so are the app's own strings and the
-reference decoder. A stealth message is not readable without the password:
-the key comes from PBKDF2-HMAC-SHA256 with 600 000 iterations over a fresh
-16-byte salt, and the ciphertext is authenticated (GCM tag, and a 4-byte
-HMAC marker over the header). A wrong password and a message that is not Stypo give
-the same answer, on purpose. The cost of guessing is the cost of PBKDF2 against
-the password's own entropy: a weak password is a weak lock (the app shows a
-strength colour; it does not enforce a floor).
+## 2. What it protects
 
-## 3. Adversaries we do NOT defend against
+### 2.1 The content
 
-The following are out of scope. If your threat model includes any of these,
-Stypo is the wrong tool.
+The message is encrypted with AES-256-GCM before it is hidden. The key comes
+from your password through PBKDF2-HMAC-SHA256 with 600 000 iterations and a
+random 16-byte salt for each message (`stealth-v1.md` §3). Without the
+password the hidden bytes look random.
 
-### Detection (the existence of a hidden message)
-This is the main limit and the reason for the sentence at the top.
+**The password is the whole defence.** The format and the app are public, so
+whoever holds a text can try passwords as fast as PBKDF2 runs, and graphics
+cards run it quickly. A short or reused password turns a saved text into a
+readable one; the app colours the password field by strength and refuses
+nothing. For scale: six lowercase letters are about 3 × 10^8 possibilities
+(28 bits), four random words from a list of 7 776 about 4 × 10^15 (52 bits).
+How many guesses a second an attacker manages depends on their hardware; we
+have not measured it†. "Pair in person" avoids the problem: one phone makes
+a random 128-bit password and hands it to the other through two QR codes, so
+nobody invents or types one.
 
-- A run of variation selectors is found by scanning the message for those code
-  points; the decoder itself takes the longest run of them and treats a run of 7
-  to 4 000 as a payload (`spec/text-layer.md` section 2). **Inferred:** ordinary
-  text contains runs of one or two (an emoji with its presentation selector, a
-  keycap, an ideographic variation sequence), so a long run stands out; nobody
-  measured a corpus for this, and no figure is claimed.
-- Two messages in one text (a person adds twice without clearing Messages' field,
-  which `insertText` appends to): a reader who can read the longest run is told
-  "damaged" (`invalid`), not given that one, because it may be the withdrawn one;
-  a wrong password still gets "nothing found" (`spec/text-layer.md` section 2, step
-  5; decided 2026-11-11). The composer cannot see Messages' field, so it cannot
-  prevent this; the sender is not told. **Measured** that the field holds both
-  (two adds, one Send, one bubble with 68 selectors = the two frames of 19 and 49 bytes; iOS 27.0 simulator, one run, 2026-11-12,
-  the project's measurement record (read path; not published), the double-insert measurement; **not measured on a phone**). The engine behaviour is covered by vectors and tests.
-- The smallest stealth message is a run of 114 characters; a typical one is
-  hundreds. **verified** (arithmetic of the format, `spec/stealth-v1.md` section 7).
-- The position is fixed: the run sits right after the first word of the cover
-  (`spec/text-layer.md` section 3). A scanner that knows the app does not need to
+Why PBKDF2 and not Argon2id, which would cost an attacker more per guess:
+PBKDF2 is the only password function in Apple's SDK†, and Argon2id would put
+third-party cryptography into the app and into every reference decoder.
+
+### 2.2 Integrity, and one answer for every failure
+
+The GCM tag covers the encrypted message. Change one hidden bit and the
+check fails. A wrong password, a message that was changed on the way and a
+text with no message all get the same answer, on purpose: the screen does
+not show whether a particular text holds something you cannot open. One
+exception, on purpose: a run that was cut short is reported as cut, so the
+recipient can ask for the message again.
+
+### 2.3 No app marker in the stream
+
+A stealth message has no magic bytes, no version and no length in clear. It
+is a random salt, a keyed marker that differs for every message, and
+ciphertext (`stealth-v1.md` §2). A scanner that looks for a known signature
+has nothing to match. This is protection against signature scanners, not
+against statistics (§3.1).
+
+### 2.4 Open mode
+
+Open mode needs no password. Anyone with Stypo, or with the specification
+and its reference decoder, reads the message. The run starts with the `STYP`
+marker, which names the app on purpose. An open message also points at the
+encrypted ones next to it: same chat, same app. It is for jokes and love
+notes, never for anything that matters, and the composer says so every time
+it is about to send one.
+
+## 3. What it does not protect
+
+### 3.1 That a text carries a message
+
+This is Stypo's main limit, and nothing in the design tries to fix it.
+
+- **A scan finds the run.** Variation selectors are ordinary Unicode code
+  points, and looking for a run of them takes one line of code. Ordinary
+  text carries one or two beside an emoji†; Stypo's shortest stealth run is
+  114 characters (`stealth-v1.md` §7), a typical one several hundred.
+- **The run is always in the same place**, right after the first word
+  (`text-layer.md` §3). A scanner built for Stypo does not even need to
   search.
-- The cover is the sender's own text, unchanged (the only edits are the line
-  breaks and U+FEFF a message cannot keep at its ends); the run is the only part
-  of the message that is not ordinary text, and nothing makes it look like
-  ordinary text.
-- Stypo does nothing against a classifier, a log scan, a corpus search by an
-  intermediary, or a person who copies the message into an editor that shows
-  invisible characters. Stiger and Stecho at least try to match the statistics of
-  a cover; Stypo has no such layer to approach, and none is planned.
+- **Your visible text gives no cover.** It is sent as you wrote it; the run
+  is the only part of the message that is not ordinary text.
 
-### Length (to a 64-byte bucket)
-A stealth message pads the secret to a multiple of 64 bytes inside the
-encryption, so the run is `50 + 64k` bytes long (`spec/stealth-v1.md`). Anyone
-who finds the run counts it and learns `k`, the secret's size to within one
-bucket. Open mode has an exact length in clear. **Proposal, not signed off by the
-owner:** the bucket size.
+Stiger and Stecho embed in a way meant to be hard to tell from an ordinary
+file. Stypo does not, and will not. There is no table of detector scores
+here because none is needed: finding the run is certain.
 
-### Open mode is a public fingerprint
-Open mode writes the magic `STYP`, a version and a length in clear
-(`spec/open-v1.md`). A person who finds the run and reads it sees which app made
-it, and reads the secret. It also tells an observer that the same tool is in use in
-that chat, which exposes encrypted messages there by association. Fine for love
-notes; never for anything sensitive. **Proposal, not signed off:** the magic.
+### 3.2 The size of the message
 
-### No forward secrecy
-A password that leaks (shoulder-surfing, a phone with the Keychain extracted, a
-backup of the person who knew it) decrypts every earlier message sent under it.
-Passwords belong to chats, not to the person, so a leak is bounded by the chats
-that share it.
+Stealth mode pads the message to a multiple of 64 bytes, so a run is `50 +
+64k` characters long (`stealth-v1.md` §7). Whoever finds it counts it and
+knows the size to within 64 bytes. Open mode states the exact length.
 
-### Compromised endpoint
-- Malware on the sender's or recipient's phone, a keylogger, a screen recorder,
-  anything reading the unlocked Keychain, a jailbroken phone.
-- An **unlocked phone, or one with the app's biometric lock off** (the default):
-  a saved password decrypts on drag-in, the app and the extension are visible on
-  the phone, and the Messages thread holds the bubbles.
-- Our password item uses `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`,
-  which physically prevents iCloud Keychain sync of *our* item.
+### 3.3 The text and the "From Stypo" label
 
-### Coercion
-Someone who can force you to unlock the phone or give up the password. There is
-no plausible-deniability mode and no duress password.
+Messages puts no "From Stypo" label on a text bubble, on the sender's phone
+or the recipient's (n = 1 per view, 2026-11-08, `experiment-read-path.md`).
+That is why Stypo has no "Copy instead of send": there is no label for it to
+avoid. What a text can show instead (same record, one run per case):
 
-### Side channels
-- Shoulder surfing while typing the secret or the password.
-- Third-party keyboards with Full Access run in their own processes and can see
-  every keystroke entered into the cover and secret fields. Password fields use
-  secure text entry, which iOS answers with the system keyboard (Stiger's
-  finding, inherited; not re-checked here); the two text fields do not.
-- Drafts: an unfinished text is kept on the phone for up to 72 hours, sealed with
-  a per-install key held in the Keychain (`ThisDeviceOnly`), cover and secret
-  both. A person with the unlocked phone and the unlocked app reads it.
-- Screenshots of the compose screen in the app switcher.
-- **Reading by paste.** The recipient's own Copy in Messages puts the bubble on
-  the system pasteboard, which Stypo does not control: the write is not
-  `localOnly`, so the text may be relayed by Universal Clipboard to the
-  recipient's other devices and stays on the pasteboard until replaced. **inferred**
-  from Stiger's measurement for images; not measured for text. The drag path never
+| Where | What shows |
+|---|---|
+| A notification banner, short message (92 hidden characters) | The visible text, as for any message |
+| A notification banner, very long message (3 964 hidden characters) | The first word, then nothing: a visible sign that something long follows |
+| VoiceOver | The bubble's accessibility label holds every hidden character; what is spoken was not measured† |
+| The lock screen | Not measured† |
+
+### 3.4 Transport
+
+Stypo needs every character of the run to arrive, in order.
+
+| Case | Result | n |
+|---|---|---|
+| A received bubble dragged into Stypo | read exactly | 12 of 12 |
+| Copy, then paste, when iOS shows its paste prompt | read exactly | 7 of 8 on the phones, refused once without a prompt; the simulator returned nothing, 6 of 6 |
+| A text of up to 4 000 UTF-16 units | the bubble is drawn whole | iOS 26.7.2, 27.0, 27.2 |
+| A text of 4 001 units or more | the bubble is collapsed and drags as its first 499 units; Stypo reports the message as cut | same |
+| One backspace in Messages' field after the text was added | the whole run was deleted | 1, simulator |
+| Two adds before one send | one bubble with two runs, which reads as damaged; the app asks before a second add in the same chat (not yet in the latest TestFlight build) | 1, simulator |
+| A copied bubble pasted into Notes | the message survived | 1, iPhone 12 mini; three runs on the iPhone 15 Pro were inconclusive |
+
+Measured 2026-11-08 to 12 on an iPhone 12 mini (iOS 26.7.2), an iPhone 15
+Pro (iOS 27.2) and the iOS 27.0 simulator (`experiment-read-path.md`). SMS,
+recipients outside Apple devices, other messengers, forwarding, quoting and
+editing a sent message were not tried†. Stypo is for iMessage between Apple
+devices.
+
+### 3.5 Your phone
+
+- **Saved passwords.** Each chat has its own password, and keeping it is
+  your choice each time ("Save for this chat"). Saved ones sit, with the
+  date each was saved and any name you gave it, in a Keychain item that
+  never leaves this phone: no iCloud Keychain, no move to a new phone with a
+  backup. It sits in a Keychain group that only Stypo and its extension
+  share, so other apps cannot read it; forensic tools on a phone unlocked
+  since it was switched on can†. Switching encryption off does not remove
+  saved passwords; Forget in Settings → Saved Passwords does. Deleting the
+  app leaves the item in place† until Stypo is installed afresh, which wipes
+  it.
+- **The Face ID lock** is off by default. Off, whoever holds the unlocked
+  phone opens every chat that has a saved password by dragging a text into
+  Stypo. On, the app asks for Face ID or the phone's passcode first: that
+  stops a person who does not know the passcode, and nobody else. The lock
+  is the app's own check: the Keychain item is not tied to Face ID, and the
+  phone hands it to the app whenever it is unlocked. In the latest
+  TestFlight build (2026-11-11) the lock also has gaps when it is on: a link
+  into the app opens Saved Passwords and the guide without asking, the About
+  tab opens the guide the same way, and the guide's switch turns the lock
+  off, again without asking. The next build closes them.
+- **Leaving the app.** In the latest TestFlight build (2026-11-11) nothing
+  covers the screen when you leave: the app switcher keeps a picture of it,
+  a revealed message is still there when you come back, and it can still be
+  open when you use the extension in another chat. The next build covers the
+  reading screen and, with the Face ID lock on, clears the message and locks
+  again (checked in a simulator, 2026-11-15/16; not on a phone†). The
+  composing screen is not covered in either.
+- **Keyboard.** A third-party keyboard with Full Access can send what you
+  type to its developer. Password fields are marked secure, which should
+  bring up the system keyboard†; the message field is an ordinary one.
+- **Drafts.** An unfinished message is kept on the phone for up to 72 hours
+  so that you do not lose it, visible text and hidden message both. It is
+  encrypted with a key that stays in this phone's Keychain; whoever has the
+  unlocked phone and the unlocked app reads it.
+- **Clipboard.** "Paste instead of drag" uses Messages' own Copy, which
+  Stypo does not control: that copy can reach your other devices through
+  Universal Clipboard† and stays until something replaces it. Dragging never
   touches the pasteboard.
-- **Stypo offers no "Copy instead of send"** (owner's decision, 2026-11-08). In Stiger and Stecho it
-  exists to drop the "From <app>" label that Messages puts under an extension's attachment; Messages puts
-  none under text that an extension adds with `insertText` (§1, verified on two phones), so the reason
-  does not apply, and the setting, its guide step and its paywall row are not shown. The code keeps a
-  pasteboard branch (the exact UTF-8 bytes, `localOnly`) behind `ProductFeatures.manualSend`, which is off,
-  so nothing reaches it, and a stored preference from an older build does nothing. If it were offered,
-  anything else on the same phone that reads the pasteboard right after would be out of scope (recalled,
-  not verified here: the pasteboard banner of iOS 14 and later makes silent reads visible).
+- **Spyware and other eyes.** Anything that reads the screen or the keyboard
+  sees the message in clear. So does a person looking over your shoulder, a
+  screenshot the recipient takes, or VoiceOver reading the text aloud. A
+  jailbroken phone protects nothing.
+- **Coercion.** Someone who can make you unlock the phone or say the
+  password gets the messages. There is no decoy password and no hidden
+  second mode.
 
-### Copying into other apps, SMS, and non-Apple recipients
-**Unmeasured, not claimed.** Whether another messenger, an email or the SMS fallback
-keeps the variation selectors is not known; Notes on one phone kept them exactly (§1). Supplementary-plane code
-points (240 of the 256 alphabet characters) in a concatenated SMS are a plausible
-loss (inferred). Stypo is for iMessage between Apple devices running Stypo.
+### 3.6 The recipient's phone and backups
 
-### Editing, forwarding and quoting
-**verified** that editing the text after `insertText` can erase the whole run (one
-backspace took the field from 187 UTF-16 units to 6). Editing a sent message,
-forwarding it, replying with a quote, and what a recipient's keyboard or
-autocorrect does to a pasted copy have not been measured. A truncated message
-(a bubble over 4 000 units, which collapses) reads as "cut short", not as a
-message that is not Stypo; this is by design and shows the recipient that a message
-existed (`spec/text-layer.md` section 5).
+Everything in §3.5 is true of the other phone too, and a careless or
+unfriendly recipient is beyond what an app can fix. The text stays in both
+Messages histories and in their backups; in iCloud that means Apple's
+storage, under keys Apple holds unless Advanced Data Protection is on†.
+Saved passwords do not travel with a backup to another phone, but a text
+from a backup plus a password learned some other way is a readable message.
 
-### Accessibility and previews
-**verified** that the accessibility label of a bubble carries every variation
-selector (3 964 of them in the longest whole bubble). **verified** (banner on both
-phones, Show Previews at Always and When Unlocked, 2026-11-08) that a banner of a
-short message (92 selectors) reads as plain text, and that a banner of a very long
-one (3 964 selectors) shows only the cover's first word and then stops, with no
-mark: on the receiver's screen that is a **visible sign of a long secret** to
-anyone who sees the banner, and a short secret has no such sign. The cutoff between
-those two sizes was not measured. **Unmeasured:** what VoiceOver says for a
-received bubble and whether it reads each selector out. What a lock-screen
-preview shows was not measured (skipped by the owner's decision of 2026-11-08) and is unknown.
+### 3.7 Who talks to whom
 
-### Metadata about the conversation
-- iMessage routing metadata (who sent what to whom, when).
-- The fact that two people are exchanging messages that carry a run of invisible
-  characters at all. (In Stypo this is visible in the message itself, §3
-  "Detection".)
-- Timing analysis on message exchange.
+Stypo changes nothing about the conversation around the text: who wrote to
+whom and when is as visible as for any iMessage, and so is the fact that two
+people keep exchanging texts.
 
-### Cryptanalysis of AES-GCM, PBKDF2, HMAC-SHA256, HKDF-SHA256
-We assume the underlying primitives are sound.
+### 3.8 Past messages
 
-## 4. Guarantees per mode
+There is no forward secrecy: a password that leaks opens every message ever
+sent under it. Changing that would take a key exchange for every message,
+which a text cannot carry. Each chat has its own password, so a leak costs
+one chat. If you suspect one, set a new password; it protects what comes
+next and nothing sent before.
 
-|                                                   | Open mode | Stealth v1 |
-|---------------------------------------------------|-----------|------------|
-| Confidentiality of the secret                     | ❌ none   | ✅ AES-256-GCM |
-| Authenticity of the secret                        | ❌ none   | ✅ GCM tag |
-| Hides the secret's length                         | ❌ exact, in clear | ⚠ to a 64-byte bucket (`50 + 64k` characters in the run) |
-| Hides Stypo-specific markers (magic, header)      | ❌ `STYP` in clear | ✅ no magic, no fixed bytes |
-| Hides "this message carries a run of hidden characters" | ❌ | ❌ a one-line scan finds it |
-| Hides the cover's own text                        | — it is the message | — it is the message |
-| Survives iMessage between Apple devices           | ✅ verified (byte for byte, iOS 26.7.2, 27.0 sim, 27.2) | ✅ same |
-| Survives editing after it was added               | ❌ verified (backspace erased the run) | ❌ same |
-| Survives a collapsed bubble (over 4 000 units)    | ❌ cut at 499 units, reported as cut | ❌ same |
-| Survives SMS, other messengers, copy to other apps | unmeasured (Notes on one phone: exact) | same |
-| Survives device compromise                        | ❌        | ❌ |
+### 3.9 Network requests the app makes
 
-### When the stealth-mode guarantees apply
+Stypo has no server and no accounts, and its code calls no analytics or
+tracking service: it imports Apple's frameworks, nothing else (read
+2026-11-20). A tip goes through Apple's App Store. The app makes no network
+request of its own, and a revealed message is plain text: a link in it opens
+nothing. In the latest TestFlight build (2026-11-11) links are still
+detected: a tap opens one in a Safari sheet, and a long press may load a
+preview from the sender's address†.
 
-The "Stealth v1" column applies only when an outgoing send actually takes the
-stealth code path. Three independent values decide that: the chat's password,
-the user's encryption toggle and the Pro entitlement. They can disagree, and
-Stypo composes them into the family's typed `EncryptionState` (the same type as
-Stiger's and Stecho's) with one rule: **only `.ready` (Pro, encryption on, a
-password for this chat) sends stealth; every other state sends open, and the
-composer says so** — a button that reads "Add unencrypted", a banner, or a
-one-shot confirmation for a user whose Pro has lapsed with a password still
-saved. Nothing auto-mutates one value to "fix" another.
+## 4. At a glance
 
-**Saved passwords.** Each chat has its own; the user decides on every send and
-every typed reveal whether to keep it ("Save for this chat"). Kept passwords
-live in one Keychain item (`*ThisDeviceOnly`), with which chat each is for. A chat
-is identified by the set of remote participant UUIDs Messages gives the
-extension; Stiger measured them to be replaced when the app is installed again
-over itself, so a chat binding is a hint and not a key (Stiger
-the participant-identifier record (not published); **not re-measured in Stypo**).
+### 4.1 Guarantees per mode
 
-The automatic read (`TextRevealViewController`, `ChatPasswordStore.revealCandidates`) tries up to eight saved passwords
-(`ChatPasswordStore.revealCandidateLimit`), the chat's own first and the others by recency, for a Pro user; a free user gets one
-password-less attempt, which reads an open message. The menu of saved passwords is still there for a pick, one attempt per
-pick, and a pick follows the same rule as the automatic read. An earlier version of this document described one automatic
-attempt (changed 2026-11-11), and then a read that bound the chat to whichever saved password opened the message (changed
-2026-11-12); neither is true any more. Two consequences follow, both **verified by reading the code and by the tests of the
-reveal screen, not measured as an attack**:
+|  | Open mode | Stealth mode |
+|---|---|---|
+| Keeps the message unreadable | ❌ | ✅ AES-256-GCM, as strong as the password (§2.1) |
+| Notices any change to the message | ❌ | ✅ GCM tag (§2.2) |
+| No app marker in the hidden stream | ❌ `STYP` | ✅ (§2.3) |
+| Hides the size of the message | ❌ exact, in clear | ⚠ to within 64 bytes (§3.2) |
+| Hides that the text carries a message | ❌ (§3.1) | ❌ a one-line scan finds it (§3.1) |
+| Hides which app sent it | ❌ `STYP` names it | ⚠ no label on a text (§3.3), but the run's place and shape are Stypo's (§3.1) |
+| Survives iMessage between two iPhones | ✅ measured (§3.4) | ✅ same |
+| Survives editing, a collapsed bubble | ❌ (§3.4) | ❌ (§3.4) |
+| Protects earlier messages if the password leaks | — | ❌ (§3.8) |
+| Holds on an unlocked or compromised phone | ❌ (§3.5) | ❌ (§3.5) |
 
-1. **Cross-chat tries.** A message received in one chat is tried against the passwords saved for other chats. The tries
-   happen on the device and show nothing to the sender.
-2. **A saved password that opens a message.** A saved password that opens a message does not become the chat's password by
-   being read. When the chat has no password, the reveal offers a switch, off by default, and binds the chat only when the
-   person turns it on. When the chat has a password of its own, the reveal changes nothing and says that another saved
-   password opened the message. A chat's password is replaced only by the person: in the composer, or by typing a password
-   on the reveal with "Save for this chat" on. What remains: whoever knows one of the reader's saved passwords can still
-   have a message under it opened in any chat (the cross-chat tries), and in a chat with no password can still get that
-   password bound if the reader turns the switch on.
+### 4.2 Who sees what
 
-Cost: up to eight PBKDF2 runs, 0.75 s on a Mac host (Apple M1 Pro, measured 2026-11-12); **not measured on a phone**. The
-screen shows a system activity indicator while it runs.
+| Who | What they see | What stays protected |
+|---|---|---|
+| **Someone who picks up your unlocked phone** | Stypo among the apps; a text message that looks ordinary in the chat, though a banner can give a long one away (§3.3); every chat with a saved password, if the Face ID lock is off (§3.5) | Stealth messages whose password is not saved |
+| **Someone with a copy of the text** (a backup, a forward, the other phone) | Open messages in full. With a one-line scan: that a message is there, and its size to within 64 bytes (§3.1, §3.2) | Stealth content, as long as the password holds (§2.1) |
+| **Someone with extraction tools and the unlocked phone** | The saved passwords†, so every chat that has one, earlier messages included (§3.5, §3.8); the Messages history | Chats whose password was never saved, as long as it is strong |
+| **Spyware on the phone** | What you see and type | Nothing (§3.5) |
 
-## 5. Trust assumptions
+Stypo keeps what a short text says, and is the simplest way into the family.
+It makes no attempt to hide that something is there: use it where that does
+not matter.
 
-- The user's password is high entropy and not reused from a leaked corpus. The
-  app shows a strength colour and does not enforce a minimum.
-- The user shares the password through a channel Stypo does not see (in person,
-  another messenger, paper). "Pair in person" exchanges one by QR code.
-- iOS Keychain on a non-jailbroken device is treated as confidential storage.
-- Apple's CryptoKit and CommonCrypto implementations of AES-GCM, HMAC-SHA256,
-  HKDF and PBKDF2 are correct. `SecRandomCopyBytes` is a CSPRNG.
-- iMessage delivers the text unchanged between Apple devices (verified on the
-  versions listed in §1; other versions are assumed, not measured).
+### 4.3 When a message goes out in stealth mode
 
-## 6. How to verify
+Two things have to hold: encryption switched on, and a password for this
+chat. Otherwise the message goes out open, and the composer says so before
+you send. Encryption starts off, so a new user sends open until they turn it
+on. The app never changes one of the two to make up for the other. In the
+latest TestFlight build (2026-11-11) Pro is still a third condition; the app
+became free after it.
 
-The protocol is in [`spec/`](spec/README.md): `text-layer.md` (the alphabet, the
-extraction rule, the placement, the cap), `open-v1.md` and `stealth-v1.md`. The
-implementation is split across:
+- **One password per chat.** A chat is recognised by identifiers that
+  Messages gives the extension. They changed when the app was installed
+  again over itself, and survived a TestFlight update (measured for Stiger:
+  developer installs on iOS 27.2 and 26.7.2, the update on iOS 27.2,
+  2026-11-02/03; not repeated for Stypo†). So the link between a saved
+  password and its chat can break, and the app does not rely on it alone.
+- **Reading tries saved passwords.** A reveal tries the chat's own password
+  first, then up to seven other saved ones; eight tries took 0.75 s on a Mac
+  (2026-11-12), and a phone was not timed†. So a message under any password
+  saved on your phone can be opened in any chat.
+- **Reading never moves a chat to another password.** If another saved
+  password opens a message, the reading screen says so, and in a chat with
+  no password it offers a switch, off by default, to keep that one. Only you
+  change a chat's password. The latest TestFlight build (2026-11-11) is
+  older than this and the bullet above: it makes one automatic try, with the
+  chat's own password, leaves the other saved ones to a menu, and has no
+  switch.
 
-- `StypoCore/TextCarrierCodec.swift` — bytes to variation selectors, extraction
-  (the longest run), placement, the cover rules
-- `StypoCore/TextStegoMarker.swift` — header framing and the HKDF/HMAC derivations
-- `StypoCore/TextStegoEngine.swift` — encode and decode of both modes, the cap, the bucket
-- `StypoCore/AESHelper.swift` — AES-GCM and PBKDF2 wrappers
-- `StypoCore/TextCompose.swift`, `StypoCore/TextReveal.swift` — what the composer and the reveal screen ask of the engine
+## 5. Assumptions and what is unverified
 
-A reference decoder written from the spec alone is in
-`spec/reference/python/stypo_decode.py`; the Swift engine reads its test vectors
-and the Python decoder reads the vectors the Swift engine writes
-(`CrossImplVectorsTests`, `spec/test-vectors/`). If your decoder disagrees with
-Stypo on a vector, the spec is wrong — please report it.
+Stypo's claims hold if your password is long and used nowhere else; the
+other person got it in person ("Pair in person") or over a channel you
+trust; neither phone is jailbroken or runs spyware; Apple's cryptography
+(CryptoKit, CommonCrypto, `SecRandomCopyBytes`) is correct and the
+primitives hold; and iMessage keeps delivering the text unchanged (§3.4),
+which is observed behaviour, not Apple's promise.
 
-## 7. Known weaknesses (acknowledged, not fixed)
+**† Not checked by us.** Recalled, assumed, inferred, or measured for a
+sibling only:
 
-1. **Detectability.** §3. There is no layer to fix it with; spreading the run
-   across the text would, by inference, change nothing for a scanner that looks
-   for the code points (the project's design notes, not published).
-2. **The run's position is fixed** (end of the first word). A scanner built for
-   Stypo can look only there.
-3. **Open mode exists in the same UI as stealth mode, and carries a fingerprint.**
-   A person who forgets the password, or whose Pro lapsed, sends open (the
-   composer says so on the button, in a note and, for a lapse, in a dialog), and
-   the `STYP` magic in that message names the app for everyone in the chat.
-4. **No forward secrecy.** A password leak retroactively decrypts every earlier
-   message sent under it (per chat, §4 "Saved passwords").
-5. **Per-chat passwords, distributed by hand.** Each chat has its own password, so
-   one leaked or coerced password opens one chat, not every correspondent's.
-   Distribution is manual: in person through QR pairing (which agrees a new
-   128-bit password every time) or through a channel the user trusts. What it does
-   not change, and what it adds:
-   - Someone holding the unlocked phone, with the biometric lock off (the default)
-     or knowing the passcode, opens with one drag every chat whose password is
-     saved. "Save for this chat" off keeps a password out of the phone; the cost is
-     typing it on every reveal.
-   - The saved list is on-device metadata: how many passwords, when each was saved,
-     and any name the user gave it ("Lawyer"). A name is optional: when a new
-     password would be saved, a popup asks whether to keep it, with an empty
-     "Name (optional)" field. The list sits behind the biometric lock with the rest
-     of Settings, which falls back to the passcode.
-   - Stypo cannot show which chat a password belongs to (Messages gives no names),
-     and the binding may be lost on reinstall (§4 "Saved passwords"); the reveal
-     tries up to eight saved passwords, one PBKDF2 run each, and binds no chat by reading (§4, "Saved passwords",
-     for the two consequences).
-6. **Length to a 64-byte bucket**, and exact length in open mode (§3).
-7. **PBKDF2, not Argon2id.** PBKDF2-SHA256 at 600 000 iterations is the same choice as
-   Stiger's and Stecho's; it is not memory-hard. **Inferred:** a determined attacker
-   with GPUs is helped less by a long random password than by a short one, which is
-   why "Pair in person" agrees 128 random bits.
-8. **Truncation tells the recipient that a message existed.** A cut run is reported as
-   cut, not as nothing (the price of telling the person to ask again).
-9. **Editing after insertion destroys the message** (verified), and the extension can
-   only say so; it cannot prevent the edit.
-10. **iMessage only.** Other transports are unmeasured. Reading by paste exposes the
-    message on the pasteboard (§3); the drag is the primary read route.
-11. **Some numbers are proposals, not signed off:** the `STYP` magic, the 64-byte
-    bucket and the `stypo-v1-header` domain string. The cap (3 600 units) and the
-    body limit (2 000 bytes) are the owner's decision, 2026-11-08.
+- that iOS keeps Keychain items after an app is deleted, and that extraction
+  tools reach them (§3.5): recalled;
+- that iOS shows its own keyboard for a secure field (§3.5): set in the
+  code, not tested;
+- that Apple's SDK has no password function besides PBKDF2 (§2.1): checked
+  once, against the iOS 27.2 SDK on 2026-11-10, and no record was kept; how
+  fast an attacker guesses: not measured;
+- how iCloud protects Messages and backups (§3.6): recalled, not read at the
+  source;
+- that a local-only pasteboard item stays off Universal Clipboard, and that
+  a copy made in Messages travels through it (§3.5): the first is a flag set
+  in the code, neither was measured;
+- what the app switcher shows on a real phone (§3.5): simulator only;
+- the chat identifiers after a reinstall or an update (§4.3): measured for
+  Stiger, which shares the code, and for a TestFlight update only;
+- how many variation selectors ordinary text carries (§3.1): expected to be
+  one or two, no corpus was measured;
+- what VoiceOver speaks, the lock-screen preview, and where between 92 and 3
+  964 hidden characters a banner starts to cut (§3.3);
+- SMS, recipients outside Apple devices, other messengers, forwarding,
+  quoting, editing a sent message (§3.4); most of Stypo's characters lie
+  outside the basic plane of Unicode, which a long SMS may not keep:
+  inferred; a collapsed bubble copied on a phone; iOS versions other than
+  those of §3.4, the Mac and the Watch;
+- what a long press on a detected link loads inside Messages (§3.9): not
+  measured.
 
-## 8. History
+## 6. How to verify and where to report
 
-- **2026-11-08.** First version, written with the first design of the product,
-  before any copy claims anything: the format and its reference decoder
-  (spec), the read-path measurements (simulator and two phones), the engine,
-  the extension and the container app. No App Store build exists yet.
-- **2026-11-09.** Russian TL;DR added after the owner signed the English off,
-  following Stiger's document. It says what the English says and no more; the
-  English stays the text to cite if the two ever differ.
+Everything needed to check Stypo's claims about the format is in
+<https://github.com/axlerk/stypo-protocol>:
+
+| File | What it holds |
+|---|---|
+| `text-layer.md` | Bytes as invisible characters, how a decoder finds the run, where it is placed, the size limits |
+| `open-v1.md`, `stealth-v1.md` | The two modes: framing, key derivation, AES-256-GCM, the padding |
+| `reference/python/` | A reference decoder written from the specification alone |
+| `test-vectors/` | Messages, passwords and the expected results |
+
+The app's engine reads the reference decoder's vectors, and the reference
+decoder reads the vectors the app writes. A decoder is about thirty lines
+for open mode; it can open a text from your own chat without Stypo.
+
+Found a gap between this document and the app, or between the app and the
+specification? Open an issue at
+<https://github.com/axlerk/stypo-protocol/issues>. For an attack on the
+format, write first to hello@onegoodman.studio with `[SECURITY]` in the
+subject.
+
+## 7. History
+
+| When | What changed | What it means for old texts |
+|---|---|---|
+| 2026-11-15 | Stypo became free: stealth mode, saved passwords and pairing need no purchase | The format did not change. The latest TestFlight build (2026-11-11) still asks for Pro |
+| 2026-11-11 to 13 | Reading tries up to eight saved passwords and never changes a chat's password; the app asks before a second add | The latest TestFlight build (2026-11-11) has none of the three |
+| 2026-11-08 | First version of the format and of this document | — |
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| AES-256-GCM | The cipher: encrypts the message and detects any change to it |
+| Carrier | The text a message is hidden in |
+| Forward secrecy | A leaked key does not open earlier messages. Stypo does not have it (§3.8) |
+| Open mode / stealth mode | Without a password, readable by anyone, with Stypo or without it / with a password, encrypted |
+| PBKDF2 | Turns a password into a key, slowly on purpose (RFC 8018) |
+| Run | The unbroken sequence of invisible characters that holds the message |
+| Steganalysis | Detecting that something is hidden, without reading it |
+| UTF-16 unit | How Messages counts the length of a text; most letters are one unit, an emoji is two or more |
+| Variation selector | A Unicode character that normally picks the look of the character before it and draws nothing itself. Stypo uses 256 of them as bytes |
+| Visible text | What you write yourself; the hidden message rides inside it |

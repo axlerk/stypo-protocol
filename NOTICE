@@ -1,5 +1,5 @@
 Stypo wire-format specification and reference decoder
-Copyright 2026 Pavel Khudiakov (OneGoodMan Studio)
+Copyright 2026 Pavel Khudiakov (OneGoodMan.studio)
 
 The reference decoder (reference/) is licensed under Apache-2.0 (LICENSE).
 The specification text and the test vectors are licensed under CC BY 4.0

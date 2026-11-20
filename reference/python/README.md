@@ -18,13 +18,12 @@ python verify_test_vectors.py ../../test-vectors
 python stypo_vectors.py ../../test-vectors      # regenerate (deterministic)
 ```
 
-`stypo_vectors.py` shares its key derivation with `stypo_decode.py`, so a mistake in that
-derivation would not be caught by this pair. The independent check is the Swift engine
-(`StypoCore/TextStegoEngine.swift`, plan step 4), checked in both directions on 2026-11-08: the
-Swift decoder reads every vector in `../../test-vectors/` (41 of 41), and this decoder reads the 16
-vectors the Swift encoder wrote to `../../test-vectors/swift-v1/` (16 of 16). The two implementations
-use different libraries for PBKDF2, HKDF, HMAC and AES-GCM (CommonCrypto and CryptoKit against
-`hashlib` and PyCA `cryptography`).
+`stypo_vectors.py` shares its key derivation with `stypo_decode.py`, so a mistake in that derivation
+would not be caught by this pair. The independent check is the Swift engine in the app, checked in
+both directions on 2026-11-08: the Swift decoder reads every vector in `../../test-vectors/` (41 of
+41), and this decoder reads the 16 vectors the Swift encoder wrote to `../../test-vectors/swift-v1/`
+(16 of 16). The two implementations use different libraries for PBKDF2, HKDF, HMAC and AES-GCM
+(CommonCrypto and CryptoKit against `hashlib` and PyCA `cryptography`).
 
 `verify_test_vectors.py` also checks the HKDF-SHA256 here against RFC 5869, test case 3 (a
 zero-length salt and info), which is the empty-salt form stealth mode uses. PBKDF2, HMAC

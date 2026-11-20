@@ -4,12 +4,12 @@
 
     python stypo_vectors.py <out-dir>
 
-A small encoder, written from `spec/text-layer.md`, `open-v1.md` and `stealth-v1.md`.
-The encoder is **not** part of the wire format (only decoding is normative); it exists
-to make messages, including malformed ones, for the decoders to read. The Swift engine
-(plan step 4) decodes these files (CrossImplVectorsTests) and emitted `swift-v1/` for
-stypo_decode.py to read, which is the independent check: this file and stypo_decode.py share
-their key derivation, so a mistake there would not be caught by the pair alone.
+A small encoder, written from `spec/text-layer.md`, `open-v1.md` and `stealth-v1.md`. The
+encoder is **not** part of the wire format (only decoding is normative); it exists to make
+messages, including malformed ones, for the decoders to read. The Swift engine in the app
+decodes these files and emitted `swift-v1/` for stypo_decode.py to read, which is the
+independent check: this file and stypo_decode.py share their key derivation, so a mistake
+there would not be caught by the pair alone.
 
 Vectors are deterministic: salts, nonces, padding and filler text come from SHA-256 in
 counter mode, so the same script gives the same bytes. A shipping encoder MUST use a

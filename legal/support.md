@@ -20,7 +20,8 @@ encrypted, and you both need the password.
    message after Stypo has added the secret: editing can erase it.
 6. The recipient touches and holds the received message, drags it into the
    Stypo extension (or taps Copy, then uses the paste button in Stypo), and the
-   secret appears.
+   secret appears. On iPad, use Copy and the paste button: dragging is not
+   supported there.
 
 For the byte-level format and an independent Python reference decoder, see the
 specification in the public repository,
@@ -34,9 +35,14 @@ accounts.
 
 **Q: What encryption does it use?**
 AES-256-GCM with a key derived from your password via PBKDF2-SHA256
-(600,000 iterations). Open mode (the free tier) does not encrypt: anyone with
-Stypo, or with the public specification, can read the secret. Encryption
-requires Stypo Pro.
+(600,000 iterations). Encryption is free and starts off: turn it on in the
+Stypo app's Settings, then set a password for the chat when you write in
+Messages. Pairing in the app does both at once. Without a password (open
+mode) nothing is encrypted: anyone with Stypo, or with the public
+specification, can read the secret.
+
+**Q: Does Stypo cost anything?**
+No. Every feature is free. The app has a tip jar; a tip unlocks nothing.
 
 **Q: Can someone tell a message has a secret in it?**
 Yes. Stypo is the most detectable app of its family. The secret is carried by
@@ -66,13 +72,6 @@ and send it without changing the text.
 **Q: I lost my password.**
 We cannot recover it. The password never leaves your device, and without it
 the secret is unrecoverable.
-
-**Q: I'm in Russia and the App Store won't let me pay.**
-All Pro features are unlocked automatically when your iPhone's primary system
-language (iOS Settings → General → Language & Region → iPhone Language) is set
-to Russian. The per-app language override (iOS Settings → Stypo → Language) is
-intentionally **not** counted: only the system-level language unlocks free
-Pro.
 
 ## Contact
 

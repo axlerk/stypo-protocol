@@ -146,5 +146,5 @@ The arithmetic is in [`text-layer.md`](text-layer.md), section 4 (the cap is own
 Python reference decoder, written from these documents only:
 [`reference/python/stypo_decode.py`](reference/python/stypo_decode.py). Test vectors
 from the Python emitter [`reference/python/stypo_vectors.py`](reference/python/stypo_vectors.py)
-are in [`test-vectors/`](test-vectors/); the Swift engine will decode them and
-emit vectors that the Python decoder reads (plan step 4).
+are in [`test-vectors/`](test-vectors/); the Swift engine in the app decodes them and wrote the
+vectors in [`test-vectors/swift-v1/`](test-vectors/swift-v1/), which the Python decoder reads.

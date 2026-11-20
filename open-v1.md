@@ -1,9 +1,8 @@
 # Open Mode (open-v1)
 
 **Open mode is not a privacy feature.** Anyone who reads this document and
-writes 30 lines of Python can read every open-mode message. It exists so the app
-is useful before the user pays for stealth mode, and for messages you would
-also write on a postcard.
+writes 30 lines of Python can read every open-mode message. It exists for
+messages you would also write on a postcard.
 
 Its magic is a fingerprint on purpose: a person who finds the run and reads the
 stream sees `STYP` and learns which app made it. A message that must not say

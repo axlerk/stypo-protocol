@@ -1,6 +1,6 @@
 # Stypo: Privacy Policy
 
-_Last updated: 9 November 2026_
+_Last updated: 20 November 2026_
 
 Stypo is an iOS app and iMessage extension that hides a short text inside
 an ordinary text message, using invisible characters and, with a password,
@@ -32,7 +32,10 @@ Stypo does not keep a copy of the messages you send or receive. The finished
 message is handed to Messages, which stores and delivers it. A secret you
 read is shown on screen and not stored.
 
-Removing the app removes everything in the table above.
+Removing the app removes its settings and drafts. iOS may keep Keychain
+items after an app is deleted; Stypo erases its saved passwords the next time
+it is installed on this device. Until then they may stay in this device's
+Keychain, where no other app can read them.
 
 ## Outbound network requests
 
@@ -46,9 +49,10 @@ user-generated content to any server.
 
 Two things you start yourself do reach the network, and neither goes through
 a Stypo server. A link you tap (the Terms of Use, this Privacy Policy, the
-website, the specification, or a web link that appears inside a secret you
-have read) opens in Safari or in an in-app Safari view, and Safari makes that
-request to the site of the link. Purchases go through Apple (see below).
+website or the specification) opens in Safari or in an in-app Safari view, and
+Safari makes that request to the site of the link. A secret you read is shown
+as plain text: a web address inside it is not a link. Purchases go through
+Apple (see below).
 
 ## Pasteboard
 
@@ -65,17 +69,17 @@ a password by hand.
 
 ## Face ID / Touch ID
 
-Stypo uses biometric authentication only to gate access to settings and
-saved passwords on your device. Authentication happens entirely through
+Stypo uses biometric authentication only to protect settings, saved
+passwords and, when you turn the lock on, the writing and reading of secrets
+on your device. Authentication happens entirely through
 Apple's `LocalAuthentication` framework; Stypo never sees your biometric
 data.
 
 ## Purchases
 
-In-app purchases (Stypo Pro monthly, yearly, lifetime, and the tip) are
-processed by Apple via StoreKit. Stypo sees only an anonymous entitlement
-flag indicating whether you have an active purchase. We do not receive your
-name, email, payment details, or App Store account.
+Stypo is free. Its only in-app purchase is an optional tip, processed by
+Apple via StoreKit; it unlocks nothing. We do not receive your name, email,
+payment details, or App Store account.
 
 ## What Stypo cannot protect against
 

@@ -231,10 +231,11 @@ devices.
 - **Keyboard.** A third-party keyboard with Full Access can send what you
   type to its developer. Password fields are marked secure, which should
   bring up the system keyboard†; the message field is an ordinary one.
-- **Drafts.** An unfinished message is kept on the phone for up to 72 hours
-  so that you do not lose it, visible text and hidden message both. It is
-  encrypted with a key that stays in this phone's Keychain; whoever has the
-  unlocked phone and the unlocked app reads it.
+- **Drafts.** Nothing unsent is written to the phone. Collapsing the panel
+  keeps an unfinished message in memory, and with the Face ID lock on it asks
+  again before it shows. When Messages closes Stypo (another app, the Home
+  screen, the lock), the message is gone. Drafts that an older build kept
+  are deleted, with their key, the first time Stypo opens after the update.
 - **Clipboard.** "Paste instead of drag" uses Messages' own Copy, which
   Stypo does not control: that copy can reach your other devices through
   Universal Clipboard† and stays until something replaces it. Dragging never
@@ -402,6 +403,7 @@ subject.
 
 | When | What changed | What it means for old texts |
 |---|---|---|
+| 2026-11-21 | Unsent messages are no longer kept on the phone | Drafts from older builds are deleted on update |
 | 2026-11-15 | Stypo became free: stealth mode, saved passwords and pairing need no purchase | The format did not change. The latest TestFlight build (2026-11-11) still asks for Pro |
 | 2026-11-11 to 13 | Reading tries up to eight saved passwords and never changes a chat's password; the app asks before a second add | The latest TestFlight build (2026-11-11) has none of the three |
 | 2026-11-08 | First version of the format and of this document | — |

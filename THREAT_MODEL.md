@@ -230,7 +230,12 @@ devices.
   composing screen is not covered in either.
 - **Keyboard.** A third-party keyboard with Full Access can send what you
   type to its developer. Password fields are marked secure, which should
-  bring up the system keyboard†; the message field is an ordinary one.
+  bring up the system keyboard†; the two message fields are ordinary ones.
+  The secret field offers suggestions and autocorrection, as the cover does
+  (the owner's decision, 2026-11-24: with them off in one field only, the
+  suggestion bar came and went as you moved between the fields and the form
+  jumped). So the system keyboard may learn words of a secret and offer them
+  later, in other apps too†.
 - **Drafts.** Nothing unsent is written to the phone. Collapsing the panel
   keeps an unfinished message in memory, and with the Face ID lock on it asks
   again before it shows. When Messages closes Stypo (another app, the Home
@@ -275,11 +280,58 @@ next and nothing sent before.
 
 Stypo has no server and no accounts, and its code calls no analytics or
 tracking service: it imports Apple's frameworks, nothing else (read
-2026-11-20). A tip goes through Apple's App Store. The app makes no network
+2026-11-20). The app makes no network
 request of its own, and a revealed message is plain text: a link in it opens
 nothing. In the latest TestFlight build (2026-11-11) links are still
 detected: a tap opens one in a Safari sheet, and a long press may load a
-preview from the sender's address†.
+preview from the sender's address†. It does show maps, and maps come from
+Apple.
+
+**A map reaches Apple Maps only when you ask.** When a revealed text holds
+coordinates (an attached place, `geo:`, or a map link with coordinates in
+it), the reading screen shows them on a card with a "Show map" button and a
+Copy button. Nothing is requested before the person agrees: a tap on "Show
+map" and a tap on the `geo:` link in the text ask the same question (owner,
+2026-11-24: one consent for the link and the button). After "Show map"
+Apple's map servers receive the area around the coordinates, from the
+recipient's IP, at that moment; the message itself is not sent. "Always show
+maps" on that question, or the switch in Settings, draws the map as soon as
+a message is read. Copy puts the card's digits on this device's pasteboard
+only (not Universal Clipboard) and sends nothing. Nothing in the reveal opens
+in an in-app browser. Once the map is shown, only the "Open in Maps" button
+hands the place on (owner, 2026-11-24): a tap on the map or on the `geo:`
+link does nothing more. A Messages extension cannot open another app
+(`extensionContext.open` always opened Stypo itself, iPhone 17 simulator,
+iOS 27.0, 2026-11-24), so the button opens Stypo with
+`stypo://map?ll=<lat>,<lon>` and Stypo opens a `maps.apple.com` address it
+builds from those two numbers (`PlaceHopLink`). Stypo shows for a moment on
+the way. The app accepts nothing else on that link, so the hop cannot open an
+address from a message. A map link from Google, Yandex or Waze opens Apple
+Maps at its coordinates, never the sender's address. Any other kind of link
+does nothing.
+
+**Attaching a place talks to Apple too, after the same question.** "Pick on
+Map" asks the reader's question first, with the same "Always show maps"
+setting; before the answer no map view exists and nothing is searched
+(owner, 2026-11-24). Once the picker is open it loads Apple's map tiles for
+the area shown, and typing in its search field sends what is typed to Apple.
+"Current location" shows no map: it asks for permission the first time,
+then makes one location request through Core Location. What Core Location
+sends to Apple for that one fix is not documented: Apple's pages say Location
+Services uses GPS, Bluetooth and "crowd-sourced Wi-Fi hotspot and cell tower
+locations", and that a device with Location Services on periodically sends
+the locations of nearby hotspots and towers to Apple, anonymously (Apple,
+Location Services & Privacy, apple.com/legal/privacy/data/en/location-services,
+read 2026-11-24); they say nothing about a single app's request. All of this
+comes from the sender's IP. Stypo itself sends the coordinates nowhere: they
+become ordinary text in the hidden message.
+
+**In open mode a place is as public as the rest of the message** (§2.4):
+anyone with Stypo, or with the specification and its reference decoder,
+reads the coordinates. For a message that *is* a place, the area Apple sees
+after "Show map" is most of what it says; to keep a place away from Apple,
+do not tap "Show map", or write it as plain words. TestFlight build 6
+(2026-11-21) has no place or map at all.
 
 ## 4. At a glance
 
@@ -403,6 +455,9 @@ subject.
 
 | When | What changed | What it means for old texts |
 |---|---|---|
+| 2026-11-24 | One question before any map: the `geo:` link in the text asks like "Show map", and "Pick on Map" asks before its map loads; Copy for the coordinates; no in-app browser; "Open in Maps" (the button only) hops through the app with `stypo://map?ll=` | The format did not change |
+| 2026-11-24 | The secret field has the cover's suggestions and autocorrection | Nothing changes for texts already sent; words typed into a secret from now on may be learned by the keyboard |
+| 2026-11-21 | A place can be attached to the hidden message (`geo:` coordinates in its text); reading shows a place on a card and asks Apple Maps for the map only after "Show map" | The format did not change: a place is text. TestFlight build 6 (2026-11-21) has neither |
 | 2026-11-21 | Unsent messages are no longer kept on the phone | Drafts from older builds are deleted on update |
 | 2026-11-15 | Stypo became free: stealth mode, saved passwords and pairing need no purchase | The format did not change. The latest TestFlight build (2026-11-11) still asks for Pro |
 | 2026-11-11 to 13 | Reading tries up to eight saved passwords and never changes a chat's password; the app asks before a second add | The latest TestFlight build (2026-11-11) has none of the three |

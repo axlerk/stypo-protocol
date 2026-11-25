@@ -42,7 +42,7 @@ mode) nothing is encrypted: anyone with Stypo, or with the public
 specification, can read the secret.
 
 **Q: Does Stypo cost anything?**
-No. Every feature is free. The app has a tip jar; a tip unlocks nothing.
+No. Every feature is free, and the app sells nothing.
 
 **Q: Can someone tell a message has a secret in it?**
 Yes. Stypo is the most detectable app of its family. The secret is carried by

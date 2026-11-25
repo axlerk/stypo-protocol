@@ -1,6 +1,6 @@
 # Stypo: Privacy Policy
 
-_Last updated: 20 November 2026_
+_Last updated: 23 November 2026_
 
 Stypo is an iOS app and iMessage extension that hides a short text inside
 an ordinary text message, using invisible characters and, with a password,
@@ -51,8 +51,7 @@ Two things you start yourself do reach the network, and neither goes through
 a Stypo server. A link you tap (the Terms of Use, this Privacy Policy, the
 website or the specification) opens in Safari or in an in-app Safari view, and
 Safari makes that request to the site of the link. A secret you read is shown
-as plain text: a web address inside it is not a link. Purchases go through
-Apple (see below).
+as plain text: a web address inside it is not a link.
 
 ## Pasteboard
 
@@ -77,9 +76,7 @@ data.
 
 ## Purchases
 
-Stypo is free. Its only in-app purchase is an optional tip, processed by
-Apple via StoreKit; it unlocks nothing. We do not receive your name, email,
-payment details, or App Store account.
+Stypo is free and sells nothing: no in-app purchases, no subscription, no tips.
 
 ## What Stypo cannot protect against
 

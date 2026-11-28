@@ -1,10 +1,10 @@
 # Stypo: Privacy Policy
 
-_Last updated: 23 November 2026_
+_Last updated: 28 November 2026_
 
 Stypo is an iOS app and iMessage extension that hides a short text inside
 an ordinary text message, using invisible characters and, with a password,
-AES-256-GCM encryption. Everything happens on your device. This document
+AES-256-GCM encryption. Hiding and reading happen on your device. This document
 describes what data Stypo does and does not collect.
 
 ## TL;DR
@@ -13,7 +13,7 @@ describes what data Stypo does and does not collect.
   **no advertising**, **no third-party tracking SDKs**.
 - Everything you create (secrets, cover texts, passwords) stays on your
   device.
-- Stypo makes **no outbound network requests** of its own.
+- Stypo reaches the network only when you tap a link or use a map (see below).
 
 ## Data we collect
 
@@ -39,25 +39,48 @@ Keychain, where no other app can read them.
 
 ## Outbound network requests
 
-**None initiated by Stypo.** Stypo does not call any server, does not
-refresh any catalog, and does not phone home for any feature. The message you
-send leaves your device only through Apple's iMessage service, which is
-operated by Apple and outside Stypo's control.
+**Stypo has no server and sends nothing on its own.** The message you send
+leaves your device only through Apple's iMessage service, which Apple
+operates. Stypo never uploads your secrets, cover texts or passwords
+anywhere.
 
-Stypo never uploads your secrets, cover texts, passwords or any other
-user-generated content to any server.
+A few things do reach the network. Each happens only after you tap, and each
+goes to the service named here, never to Stypo:
 
-Two things you start yourself do reach the network, and neither goes through
-a Stypo server. A link you tap (the Terms of Use, this Privacy Policy, the
-website or the specification) opens in Safari or in an in-app Safari view, and
-Safari makes that request to the site of the link. A secret you read is shown
-as plain text: a web address inside it is not a link.
+- **A link you tap** (the Terms of Use, this Privacy Policy, the website, the
+  specification) opens in Safari or in an in-app Safari view.
+- **Pick on Map**, when you attach a place: Stypo first asks, as it does
+  before showing a map. Once you agree, Apple Maps loads the map you look at,
+  and what you type in its search goes to Apple as you type. Its "My
+  location" button shows where you are while the map is open.
+- **Current Location**, when you attach a place: iOS asks your permission the
+  first time, then gives Stypo your position once. Stypo writes it into your
+  secret as coordinates and keeps no other copy.
+- **Show map**, when you read a secret that has a place: Stypo asks Apple Maps
+  for a picture of about one kilometre around it. Tapping the coordinates in
+  the secret asks the same question. Until you agree, nothing is requested,
+  unless you chose "Always show maps" on that question or turned on "Show
+  maps without asking" in Settings. A map link from Apple Maps, Google Maps,
+  Yandex Maps or Waze stays plain text; if it carries coordinates it gets the
+  same card.
+- **Open in Maps**, a button under the map once it is shown: Stypo opens for a
+  moment and passes the place's coordinates to the Maps app, never the address
+  of a link from another map site.
+
+Any other web address inside a secret stays plain text and opens nothing.
+
+Apple sees these map requests from your IP address, as it does for any app
+that shows a map. To keep a place away from Apple, leave "Show maps without
+asking" off and answer Cancel when Stypo asks. Copy, on the same card, puts
+the coordinates on this device's pasteboard and sends nothing.
 
 ## Pasteboard
 
 Stypo reads the pasteboard only when you tap the paste button in the
 reveal screen ("Paste instead of drag"). It never reads it in the
-background. iOS may show its own "Allow Paste" prompt.
+background. iOS may show its own "Allow Paste" prompt. It writes to the
+pasteboard only when you tap Copy on a place, and then only on this device,
+not to your other devices.
 
 ## Camera
 
@@ -65,6 +88,15 @@ Stypo requests camera access only when you scan a partner's QR code to
 share a password. The image is processed on the device to read the code
 and is not stored or sent anywhere. If you deny access, you can still type
 a password by hand.
+
+## Location
+
+The Messages extension asks for location access ("While Using the App")
+only when you choose Current Location, or "My location" on the map, to attach
+a place. Stypo puts the position into the secret you are writing and sends it
+nowhere itself; it leaves your device only inside the message you send. The
+app itself never asks for location. If you deny access, you can still pick a
+place on the map.
 
 ## Face ID / Touch ID
 
